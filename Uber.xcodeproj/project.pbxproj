@@ -15,6 +15,9 @@
 		A00E542A2472D56C001F6714 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00E54292472D56C001F6714 /* LoginController.swift */; };
 		A0228976247368AF00FE9417 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A0228975247368AF00FE9417 /* GoogleService-Info.plist */; };
 		A022897824737CDA00FE9417 /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A022897724737CDA00FE9417 /* HomeController.swift */; };
+		A077E71B2474773E00138BCC /* LocationInputActivationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A077E71A2474773E00138BCC /* LocationInputActivationView.swift */; };
+		A077E71D24748BDB00138BCC /* LocationInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A077E71C24748BDB00138BCC /* LocationInputView.swift */; };
+		A077E71F247496EC00138BCC /* LocationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A077E71E247496EC00138BCC /* LocationCell.swift */; };
 		A08C965F2472D83600D92796 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A08C965E2472D83600D92796 /* Extensions.swift */; };
 		A0DDD3632473441400BD422E /* SignUpController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DDD3622473441400BD422E /* SignUpController.swift */; };
 		A0DDD36524734F5E00BD422E /* AuthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DDD36424734F5E00BD422E /* AuthButton.swift */; };
@@ -32,6 +35,9 @@
 		A00E54292472D56C001F6714 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
 		A0228975247368AF00FE9417 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A022897724737CDA00FE9417 /* HomeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
+		A077E71A2474773E00138BCC /* LocationInputActivationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationInputActivationView.swift; sourceTree = "<group>"; };
+		A077E71C24748BDB00138BCC /* LocationInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationInputView.swift; sourceTree = "<group>"; };
+		A077E71E247496EC00138BCC /* LocationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationCell.swift; sourceTree = "<group>"; };
 		A08C965E2472D83600D92796 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		A0DDD3622473441400BD422E /* SignUpController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpController.swift; sourceTree = "<group>"; };
 		A0DDD36424734F5E00BD422E /* AuthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthButton.swift; sourceTree = "<group>"; };
@@ -132,6 +138,9 @@
 			isa = PBXGroup;
 			children = (
 				A0DDD36424734F5E00BD422E /* AuthButton.swift */,
+				A077E71A2474773E00138BCC /* LocationInputActivationView.swift */,
+				A077E71C24748BDB00138BCC /* LocationInputView.swift */,
+				A077E71E247496EC00138BCC /* LocationCell.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -261,9 +270,12 @@
 				A0DDD3632473441400BD422E /* SignUpController.swift in Sources */,
 				A0DDD36524734F5E00BD422E /* AuthButton.swift in Sources */,
 				A022897824737CDA00FE9417 /* HomeController.swift in Sources */,
+				A077E71D24748BDB00138BCC /* LocationInputView.swift in Sources */,
 				A00E542A2472D56C001F6714 /* LoginController.swift in Sources */,
 				A00E54102472D1B6001F6714 /* AppDelegate.swift in Sources */,
+				A077E71F247496EC00138BCC /* LocationCell.swift in Sources */,
 				A00E54122472D1B6001F6714 /* SceneDelegate.swift in Sources */,
+				A077E71B2474773E00138BCC /* LocationInputActivationView.swift in Sources */,
 				A08C965F2472D83600D92796 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -411,7 +423,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ammarelshamy.Uber;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -430,7 +442,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ammarelshamy.Uber;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

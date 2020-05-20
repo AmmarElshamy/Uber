@@ -58,13 +58,6 @@ extension UIView {
             return imageView
         }()
         
-        let separatorView: UIView = {
-            let view = UIView()
-            view.backgroundColor = .lightGray
-            return view
-        }()
-        
-        
         if let textField = textField {
             view.anchor(height: 50)
             
@@ -85,11 +78,23 @@ extension UIView {
             segmentedControl.anchor(top: imageView.bottomAnchor, paddingTop: 8, bottom: view.bottomAnchor, paddingBottom: 8, left: view.leftAnchor, paddingLeft: 8, right: view.rightAnchor, paddingRight: 8)
         }
         
+        let separatorView: UIView = {
+            let view = UIView()
+            view.backgroundColor = .lightGray
+            return view
+        }()
         
         view.addSubview(separatorView)
         separatorView.anchor(bottom: view.bottomAnchor, left: view.leftAnchor, paddingLeft: 8, right: view.rightAnchor, height: 0.75)
         
         return view
+    }
+    
+    func addShadow() {
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.55
+        layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
+        layer.masksToBounds = false
     }
 }
 
