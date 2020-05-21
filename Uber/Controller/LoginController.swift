@@ -22,7 +22,9 @@ class LoginController: UIViewController{
     }()
     
     private let emailTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Email", isSecureTextEntry: false)
+        let textField = UITextField().textField(withPlaceholder: "Email", isSecureTextEntry: false)
+        textField.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
+        return textField
     }()
     
     private lazy var emailContainerView: UIView = {
@@ -30,7 +32,9 @@ class LoginController: UIViewController{
     }()
     
     private let passwordTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Password", isSecureTextEntry: true)
+        let textField = UITextField().textField(withPlaceholder: "Password", isSecureTextEntry: true)
+        textField.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
+        return textField
     }()
     
     private lazy var passwordContainerView: UIView = {
@@ -101,15 +105,18 @@ class LoginController: UIViewController{
         guard let email = emailTextField.text else {return}
         guard let password = passwordTextField.text else {return}
         
+        loginButton.isEnabled = false
+        
         Auth.auth().signIn(withEmail: email, password: password) { (_, error) in
             if let error = error {
                 print("DEBUG: Failed to login with error ", error)
+                self.loginButton.isEnabled = true
                 return
             }
             
             print("Successfully logged user in..")
             guard let homeController = UIApplication.shared.keyWindow?.rootViewController as? HomeController else {return}
-            homeController.configureUI()
+            homeController.handleLoggedIn()
             self.dismiss(animated: true)
 
         }
@@ -118,5 +125,17 @@ class LoginController: UIViewController{
     @objc func handleShowSignUp() {
         navigationController?.pushViewController(SignUpController(), animated: true)
     }
-
+    
+    @objc func handleTextInputChange() {
+        let isFormValid = emailTextField.text?.count ?? 0 > 0 && passwordTextField.text?.count ?? 0 > 0
+        
+        if isFormValid {
+            loginButton.isEnabled = true
+            loginButton.backgroundColor = UIColor.mainBlueTint
+        } else {
+            loginButton.isEnabled = false
+            loginButton.backgroundColor = UIColor.rgb(red: 149, green: 204, blue: 244)
+        }
+        
+    }
 }

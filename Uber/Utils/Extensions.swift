@@ -103,6 +103,7 @@ extension UIColor {
     
     static let backgroundColor = UIColor.rgb(red: 25, green: 25, blue: 25)
     static let mainBlueTint = UIColor.rgb(red: 17, green: 154, blue: 232)
+    static let disabledButtonColor = UIColor.rgb(red: 149, green: 204, blue: 244)
     
     static func rgb(red: CGFloat, green: CGFloat, blue: CGFloat) -> UIColor {
         return UIColor(red: red/255, green: green/255, blue: blue/255, alpha: 1)

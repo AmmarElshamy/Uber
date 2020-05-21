@@ -15,31 +15,39 @@ class HomeController: UIViewController {
     
     // MARK: - Properties
     
-    private let reuseIdentifier = "LocationCell"
+    private let cellIdentifier = "LocationCell"
+    private let annotationIdentifier = "DriverAnnotation"
     private final let locationInputViewHeight: CGFloat = 200
     
     private let mapView = MKMapView()
-    private let locationManager = CLLocationManager()
+    private let locationManager = LocationHandler.shared.locationManager
     private let locationInpuActivationtView = LocationInputActivationView()
     private let locationInputView = LocationInputView()
     private let locationTableView = UITableView()
+    
+    private var user: User? {
+        didSet {
+            locationInputView.userFullName = user?.fullName
+        }
+    }
     
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.backgroundColor = .white
+        
         locationInpuActivationtView.delegate = self
         locationInputView.delegate = self
         
 //        signOut()
-        checkIfUserISLoggedIn()
-        enableLocationSevices()
+        checkIfUserIsLoggedIn()
     }
     
     // MARK: - API
     
-    func checkIfUserISLoggedIn() {
+    func checkIfUserIsLoggedIn() {
         if Auth.auth().currentUser?.uid == nil {
             DispatchQueue.main.async {
                 let navController = UINavigationController(rootViewController: LoginController())
@@ -47,18 +55,62 @@ class HomeController: UIViewController {
                 self.present(navController, animated: true)
             }
         } else {
-            configureUI()
+            handleLoggedIn()
+        }
+    }
+    
+    func handleLoggedIn() {
+        enableLocationSevices()
+        fetchUserData()
+        fetchDrivers()
+    }
+    
+    func fetchUserData() {
+        guard let currentUid = Auth.auth().currentUser?.uid else {return}
+        Service.shared.fetchUserData(uid: currentUid) { (user) -> (Void) in
+            self.user = user
+            self.configureUI()
+        }
+    }
+    
+    func fetchDrivers() {
+        guard let myLocation = locationManager?.location else {return}
+        Service.shared.fetchDrivers(location: myLocation) { (driver) in
+            guard let driverCoordinate = driver.location?.coordinate else {return}
+            let driverAnnotation = DriverAnnotation(uid: driver.uid, coordinate: driverCoordinate)
+            self.addDriverAnnotation(driverAnnotation: driverAnnotation)
+        }
+    }
+    
+    func addDriverAnnotation(driverAnnotation: DriverAnnotation) {
+        let annotationExists = mapView.annotations.contains { (annotation) -> Bool in
+            guard let annotation = annotation as? DriverAnnotation else {return false}
+            if annotation.uid == driverAnnotation.uid {
+                annotation.updateAnnotationPosition(withCoordinate: driverAnnotation.coordinate)
+                return true
+            }
+            return false
+        }
+        
+        if !annotationExists {
+            mapView.addAnnotation(driverAnnotation)
         }
     }
     
     func signOut() {
         do {
             try Auth.auth().signOut()
-            print("Signed out successfully")
+            DispatchQueue.main.async {
+                let navController = UINavigationController(rootViewController: LoginController())
+                navController.modalPresentationStyle = .fullScreen
+                self.present(navController, animated: true)
+            }
+            print("DEBUG: Signed out successfully")
         } catch let error {
             print("DEBUG: Failed to sign out with error ", error)
         }
     }
+    
     
     // MARK: - Helper Functions
     
@@ -74,6 +126,8 @@ class HomeController: UIViewController {
     }
     
     func configureMapView() {
+        mapView.delegate = self
+        
         view.addSubview(mapView)
         mapView.frame = view.frame
         
@@ -97,7 +151,7 @@ class HomeController: UIViewController {
         locationTableView.delegate = self
         locationTableView.dataSource = self
         
-        locationTableView.register(LocationCell.self, forCellReuseIdentifier: reuseIdentifier)
+        locationTableView.register(LocationCell.self, forCellReuseIdentifier: cellIdentifier)
         
         locationTableView.rowHeight = 60
         locationTableView.tableFooterView = UIView()
@@ -110,23 +164,22 @@ class HomeController: UIViewController {
 
 // MARK: - Location Services
 
-extension HomeController: CLLocationManagerDelegate {
+extension HomeController {
+    
     func enableLocationSevices() {
-        locationManager.delegate = self
-        
         switch CLLocationManager.authorizationStatus() {
         case .notDetermined:
             print("DEBUG: Location auth: not determined")
-            locationManager.requestWhenInUseAuthorization()
+            locationManager?.requestWhenInUseAuthorization()
         case .restricted, .denied:
             break
         case .authorizedAlways:
             print("DEBUG: Location auth: Always")
-            locationManager.startUpdatingLocation()
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager?.startUpdatingLocation()
+            locationManager?.desiredAccuracy = kCLLocationAccuracyBest
         case .authorizedWhenInUse:
             print("DEBUG: Location auth: when in use")
-            locationManager.requestAlwaysAuthorization()
+            locationManager?.requestAlwaysAuthorization()
         @unknown default:
             break
         }
@@ -134,7 +187,7 @@ extension HomeController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .authorizedWhenInUse {
-            locationManager.requestAlwaysAuthorization()
+            locationManager?.requestAlwaysAuthorization()
         }
     }
 }
@@ -182,9 +235,21 @@ extension HomeController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = locationTableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! LocationCell
+        let cell = locationTableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! LocationCell
         
         return cell
+    }
+}
+
+// MARK: - MKMpViewDelegate
+
+extension HomeController: MKMapViewDelegate {
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        guard let annotation = annotation as? DriverAnnotation else { return nil }
+        let view = MKAnnotationView(annotation: annotation, reuseIdentifier: annotationIdentifier)
+        view.image = #imageLiteral(resourceName: "annotation")
+        return view
     }
 }
 

@@ -12,11 +12,12 @@ class AuthButton: UIButton {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setTitleColor(UIColor(white: 1, alpha: 0.5), for: .normal)
-        backgroundColor = .mainBlueTint
+        setTitleColor(.white, for: .normal)
+        backgroundColor = .disabledButtonColor
         layer.cornerRadius = 5
         translatesAutoresizingMaskIntoConstraints = false
         heightAnchor.constraint(equalToConstant: 50).isActive = true
+        isEnabled = false
     }
     
     required init?(coder: NSCoder) {

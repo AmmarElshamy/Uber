@@ -8,10 +8,13 @@
 
 import UIKit
 import Firebase
+import GeoFire
 
 class SignUpController: UIViewController {
     
     // MARK: - Properties
+    
+    private let location = LocationHandler.shared.locationManager.location
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -22,7 +25,9 @@ class SignUpController: UIViewController {
     }()
     
     private let emailTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Email", isSecureTextEntry: false)
+        let textField = UITextField().textField(withPlaceholder: "Email", isSecureTextEntry: false)
+        textField.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
+        return textField
     }()
     
     private lazy var emailContainerView: UIView = {
@@ -30,7 +35,9 @@ class SignUpController: UIViewController {
     }()
     
     private let fullNameTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Full Name", isSecureTextEntry: false)
+        let textField = UITextField().textField(withPlaceholder: "Full Name", isSecureTextEntry: false)
+        textField.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
+        return textField
     }()
     
     private lazy var fullNameContainerView: UIView = {
@@ -38,7 +45,9 @@ class SignUpController: UIViewController {
     }()
     
     private let passwordTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Password", isSecureTextEntry: true)
+        let textField = UITextField().textField(withPlaceholder: "Password", isSecureTextEntry: true)
+        textField.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
+        return textField
     }()
     
     private lazy var passwordContainerView: UIView = {
@@ -112,8 +121,21 @@ class SignUpController: UIViewController {
         
         view.addSubview(haveAccountButton)
         haveAccountButton.anchor(bottom: view.safeAreaLayoutGuide.bottomAnchor, centerX: view.centerXAnchor, height: 32)
-        
-}
+    }
+    
+    func uploadUserDataAndDismiss(uid: String, values: [String: Any]) {
+        usersRef.child(uid).updateChildValues(values) { (error, _) in
+            if let error = error {
+                print("DEBUG: Failed to save user data with error ", error)
+                self.signUpButton.isEnabled = true
+                return
+            }
+            print("DEBUG: Successfully Registered user")
+            guard let homeController = UIApplication.shared.keyWindow?.rootViewController as? HomeController else {return}
+            homeController.handleLoggedIn()
+            self.dismiss(animated: true)
+        }
+    }
     
     // MARK: - Selectors
     
@@ -123,9 +145,12 @@ class SignUpController: UIViewController {
         guard let fullName = fullNameTextField.text else {return}
         let accountTypeIndex = accountTypeSegmentControl.selectedSegmentIndex
         
+        signUpButton.isEnabled = false
+        
         Auth.auth().createUser(withEmail: email, password: password) { (_, error) in
             if let error = error {
                 print("DEBUG: Failed to register user with error ", error)
+                self.signUpButton.isEnabled = true
                 return
             }
             
@@ -133,21 +158,36 @@ class SignUpController: UIViewController {
             
             let values = ["email": email, "fullName": fullName, "accountType": accountTypeIndex] as [String: Any]
             
-            Database.database().reference().child("users").child(uid).updateChildValues(values) { (error, _) in
-                if let error = error {
-                    print("DEBUG: Failed to save user data with error ", error)
-                    return
-                }
+            if accountTypeIndex == 1 {
+                let geoFire = GeoFire(firebaseRef: driverLocationsRef)
+                guard let location = self.location else {return}
                 
-                print("Successfully Registered user ", fullName)
-                guard let homeController = UIApplication.shared.keyWindow?.rootViewController as? HomeController else {return}
-                homeController.configureUI()
-                self.dismiss(animated: true)
+                geoFire.setLocation(location, forKey: uid) { (error) in
+                    if let error = error {
+                        print("DEBUG: Fialed to save driver's data ", error)
+                    }
+                }
             }
+            
+            self.uploadUserDataAndDismiss(uid: uid, values: values)
+            
         }
     }
     
     @objc func handleShowLogin() {
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func handleTextInputChange() {
+        let isFormValid = emailTextField.text?.count ?? 0 > 0 && passwordTextField.text?.count ?? 0 > 0 && fullNameTextField.text?.count ?? 0 > 0
+        
+        if isFormValid {
+            signUpButton.isEnabled = true
+            signUpButton.backgroundColor = UIColor.mainBlueTint
+        } else {
+            signUpButton.isEnabled = false
+            signUpButton.backgroundColor = UIColor.rgb(red: 149, green: 204, blue: 244)
+        }
+        
     }
 }
