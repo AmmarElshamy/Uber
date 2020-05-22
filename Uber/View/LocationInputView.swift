@@ -9,7 +9,8 @@
 import UIKit
 
 protocol LocationInputViewDelegate {
-    func dismissLocationInputView()
+    func returnBack()
+    func excuteSearch(query: String)
 }
 
 class LocationInputView: UIView {
@@ -92,6 +93,7 @@ class LocationInputView: UIView {
         super.init(frame: frame)
         
         configureView()
+        destinationLocationTextField.delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -130,6 +132,17 @@ class LocationInputView: UIView {
     // MARK: - Selectors
     
     @objc func handleBackTapped() {
-        delegate?.dismissLocationInputView()
+        delegate?.returnBack()
+    }
+}
+
+// MARK: - TextFieldDelegate
+
+extension LocationInputView: UITextFieldDelegate {
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        guard let query = textField.text else {return false}
+        delegate?.excuteSearch(query: query)
+        return true
     }
 }

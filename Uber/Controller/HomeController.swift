@@ -10,26 +10,44 @@ import UIKit
 import Firebase
 import MapKit
 
+enum ActionButtonStatus {
+    case showSideMenu
+    case dismissAction
+    
+    init() {
+        self = .showSideMenu
+    }
+}
 
 class HomeController: UIViewController {
     
     // MARK: - Properties
     
-    private let cellIdentifier = "LocationCell"
-    private let annotationIdentifier = "DriverAnnotation"
-    private final let locationInputViewHeight: CGFloat = 200
-    
-    private let mapView = MKMapView()
-    private let locationManager = LocationHandler.shared.locationManager
-    private let locationInpuActivationtView = LocationInputActivationView()
-    private let locationInputView = LocationInputView()
-    private let locationTableView = UITableView()
-    
+    private var searchResults = [MKPlacemark]()
+    private var route: MKRoute?
     private var user: User? {
         didSet {
             locationInputView.userFullName = user?.fullName
         }
     }
+    
+    private let cellIdentifier = "LocationCell"
+    private let annotationIdentifier = "DriverAnnotation"
+    private let locationInputViewHeight: CGFloat = 200
+    private let locationManager = LocationHandler.shared.locationManager
+    private var actionButtonStatus = ActionButtonStatus()
+    
+    // UI Views
+    private let mapView = MKMapView()
+    private let locationInpuActivationtView = LocationInputActivationView()
+    private let locationInputView = LocationInputView()
+    private let locationTableView = UITableView()
+    private let actionButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(named: "menu")?.withRenderingMode(.alwaysOriginal), for: .normal)
+        button.addTarget(self, action: #selector(actionButtonPressed), for: .touchUpInside)
+        return button
+    }()
     
     // MARK: - Lifecycle
 
@@ -42,6 +60,7 @@ class HomeController: UIViewController {
         locationInputView.delegate = self
         
 //        signOut()
+        enableLocationSevices()
         checkIfUserIsLoggedIn()
     }
     
@@ -60,7 +79,6 @@ class HomeController: UIViewController {
     }
     
     func handleLoggedIn() {
-        enableLocationSevices()
         fetchUserData()
         fetchDrivers()
     }
@@ -111,14 +129,16 @@ class HomeController: UIViewController {
         }
     }
     
-    
-    // MARK: - Helper Functions
+    // MARK: - UI Helper Functions
     
     func configureUI() {
         configureMapView()
         
+        view.addSubview(actionButton)
+        actionButton.anchor(top: view.safeAreaLayoutGuide.topAnchor, paddingTop: 16, left: view.leftAnchor, paddingLeft: 16, width: 30, height: 30)
+        
         view.addSubview(locationInpuActivationtView)
-        locationInpuActivationtView.anchor(top: view.safeAreaLayoutGuide.topAnchor, paddingTop: 32, centerX: view.centerXAnchor, width: view.frame.width - 64, height: 50)
+        locationInpuActivationtView.anchor(top: actionButton.bottomAnchor, paddingTop: 32, centerX: view.centerXAnchor, width: view.frame.width - 64, height: 50)
         
         UIView.animate(withDuration: 2) {
             self.locationInpuActivationtView.alpha = 1
@@ -133,6 +153,17 @@ class HomeController: UIViewController {
         
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .follow
+    }
+    
+    func configureActionButton(status: ActionButtonStatus) {
+        switch status {
+        case .dismissAction:
+            self.actionButton.setImage(UIImage(named: "backArrow")?.withRenderingMode(.alwaysOriginal), for: .normal)
+            self.actionButtonStatus = .dismissAction
+        case .showSideMenu:
+            self.actionButton.setImage(UIImage(named: "menu")?.withRenderingMode(.alwaysOriginal), for: .normal)
+            self.actionButtonStatus = .showSideMenu
+        }
     }
     
     func configureLocationIputView() {
@@ -160,13 +191,90 @@ class HomeController: UIViewController {
         view.addSubview(locationTableView)
 
     }
+    
+    func dismissLocationInputView(completion: ((Bool) -> Void)? = nil) {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.locationInputView.alpha = 0
+            self.locationTableView.frame.origin.y = self.view.frame.height
+        }, completion: completion)
+    }
+    
+    // MARK: - Map Helper Functions
+    
+    func searchBy(naturalLanguageQuery: String, completion: @escaping ([MKPlacemark]) -> Void) {
+        var results = [MKPlacemark]()
+        
+        let request = MKLocalSearch.Request()
+        request.region = mapView.region
+        request.naturalLanguageQuery = naturalLanguageQuery
+        
+        let search = MKLocalSearch(request: request)
+        search.start { (response, _) in
+            guard let response = response else {return}
+            
+            response.mapItems.forEach { (item) in
+                results.append(item.placemark)
+            }
+            
+            completion(results)
+        }
+    }
+    
+    func generatePolyline(to destintion: MKMapItem) {
+        let request = MKDirections.Request()
+        request.source = MKMapItem.forCurrentLocation()
+        request.destination = destintion
+        request.transportType = .automobile
+        
+        let directionRequest = MKDirections(request: request)
+        directionRequest.calculate { (response, _) in
+            guard let response = response else {return}
+            self.route = response.routes[0]
+            guard let polyline = self.route?.polyline else {return}
+            self.mapView.addOverlay(polyline)
+        }
+    }
+    
+    func removeAnnotationsAndOverlays() {
+        mapView.annotations.forEach { (annotation) in
+            if let annotation = annotation as? MKPointAnnotation {
+                mapView.removeAnnotation(annotation)
+            }
+        }
+        
+        if mapView.overlays.count > 0 {
+            mapView.removeOverlay(mapView.overlays[0])
+        }
+    }
+    
+    // MARK: - Selectors
+    
+    @objc func actionButtonPressed() {
+        switch actionButtonStatus {
+        case .showSideMenu:
+            print("DEBUG:  Aciton")
+            
+        case .dismissAction:
+            removeAnnotationsAndOverlays()
+            self.mapView.showAnnotations([self.mapView.userLocation], animated: true)
+            
+            UIView.animate(withDuration: 0.3) {
+                self.locationInpuActivationtView.alpha = 1
+                self.configureActionButton(status: .showSideMenu)
+            }
+        }
+    }
+    
 }
 
 // MARK: - Location Services
 
-extension HomeController {
+extension HomeController: CLLocationManagerDelegate {
     
     func enableLocationSevices() {
+        
+        locationManager?.delegate = self
+        
         switch CLLocationManager.authorizationStatus() {
         case .notDetermined:
             print("DEBUG: Location auth: not determined")
@@ -186,11 +294,34 @@ extension HomeController {
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if status == .authorizedWhenInUse {
+        if status != .authorizedAlways {
             locationManager?.requestAlwaysAuthorization()
+            enableLocationSevices()
         }
     }
 }
+
+// MARK: - MKMpViewDelegate
+
+extension HomeController: MKMapViewDelegate {
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        guard let annotation = annotation as? DriverAnnotation else { return nil }
+        let view = MKAnnotationView(annotation: annotation, reuseIdentifier: annotationIdentifier)
+        view.image = #imageLiteral(resourceName: "annotation")
+        return view
+    }
+    
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        guard let route = self.route else {return MKOverlayRenderer()}
+        let polyline = route.polyline
+        let lineRenderer = MKPolylineRenderer(polyline: polyline)
+        lineRenderer.strokeColor = .mainBlueTint
+        lineRenderer.lineWidth = 3
+        return lineRenderer
+    }
+}
+
 
 // MARK: - LocationInputActivationViewDelegate
 
@@ -205,15 +336,20 @@ extension HomeController: LocationInputActivationViewDelegate {
 // MARK: - LocationInputViewDelegate
 
 extension HomeController: LocationInputViewDelegate {
-    func dismissLocationInputView() {
-        UIView.animate(withDuration: 0.3, animations: {
-            self.locationInputView.alpha = 0
-            self.locationTableView.frame.origin.y = self.view.frame.height
-        }) { (_) in
+    
+    func excuteSearch(query: String) {
+        searchBy(naturalLanguageQuery: query) { (results) in
+            self.searchResults = results
+            self.locationTableView.reloadData()
+        }
+    }
+    
+    func returnBack() {
+        dismissLocationInputView { _ in
             self.locationInputView.removeFromSuperview()
-            UIView.animate(withDuration: 0.3) {
+            UIView.animate(withDuration: 0.3, animations: {
                 self.locationInpuActivationtView.alpha = 1
-            }
+            })
         }
     }
 }
@@ -231,25 +367,34 @@ extension HomeController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return section == 0 ? 2 : 5
+        return section == 0 ? 2 : searchResults.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = locationTableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! LocationCell
         
+        if indexPath.section == 1 {
+            cell.placemark = searchResults[indexPath.row]
+        }
+        
         return cell
     }
-}
-
-// MARK: - MKMpViewDelegate
-
-extension HomeController: MKMapViewDelegate {
     
-    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        guard let annotation = annotation as? DriverAnnotation else { return nil }
-        let view = MKAnnotationView(annotation: annotation, reuseIdentifier: annotationIdentifier)
-        view.image = #imageLiteral(resourceName: "annotation")
-        return view
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        configureActionButton(status: .dismissAction)
+        
+        dismissLocationInputView { _ in
+            let placemark = self.searchResults[indexPath.row]
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = placemark.coordinate
+            annotation.title = placemark.title
+            self.mapView.addAnnotation(annotation)
+            self.mapView.showAnnotations([annotation, self.mapView.userLocation], animated: true)
+            self.mapView.selectAnnotation(annotation, animated: true)
+            
+            self.generatePolyline(to: MKMapItem(placemark: placemark))
+        }
     }
 }
 

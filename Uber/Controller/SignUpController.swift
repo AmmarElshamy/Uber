@@ -127,8 +127,13 @@ class SignUpController: UIViewController {
         usersRef.child(uid).updateChildValues(values) { (error, _) in
             if let error = error {
                 print("DEBUG: Failed to save user data with error ", error)
-                self.signUpButton.isEnabled = true
-                return
+                Auth.auth().currentUser?.delete(completion: { (error) in
+                    if let error = error {
+                        print("DEBUG: Failed to delete user with error ", error)
+                    }
+                    self.signUpButton.isEnabled = true
+                    return
+                })
             }
             print("DEBUG: Successfully Registered user")
             guard let homeController = UIApplication.shared.keyWindow?.rootViewController as? HomeController else {return}
@@ -165,12 +170,17 @@ class SignUpController: UIViewController {
                 geoFire.setLocation(location, forKey: uid) { (error) in
                     if let error = error {
                         print("DEBUG: Fialed to save driver's data ", error)
+                        Auth.auth().currentUser?.delete(completion: { (error) in
+                            if let error = error {
+                                print("DEBUG: Failed to delete user with error ", error)
+                            }
+                            self.signUpButton.isEnabled = true
+                            return
+                        })
                     }
                 }
             }
-            
             self.uploadUserDataAndDismiss(uid: uid, values: values)
-            
         }
     }
     

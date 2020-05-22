@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import MapKit
 
 extension UIView {
     
@@ -98,7 +98,6 @@ extension UIView {
     }
 }
 
-
 extension UIColor {
     
     static let backgroundColor = UIColor.rgb(red: 25, green: 25, blue: 25)
@@ -109,7 +108,6 @@ extension UIColor {
         return UIColor(red: red/255, green: green/255, blue: blue/255, alpha: 1)
     }
 }
-
 
 extension UITextField {
     func textField(withPlaceholder placeholder: String, isSecureTextEntry: Bool) -> UITextField {
@@ -124,3 +122,15 @@ extension UITextField {
     }
 }
 
+extension MKPlacemark {
+    var address: String? {
+        get {
+            guard let subThoroughfare = subThoroughfare else {return nil}
+            guard let thoroughfare = thoroughfare else {return nil}
+            guard let locality = locality else {return nil}
+            guard let adminArea = administrativeArea else {return nil}
+            
+            return subThoroughfare + " " + thoroughfare + ", " + locality + ", " + adminArea
+        }
+    }
+}
