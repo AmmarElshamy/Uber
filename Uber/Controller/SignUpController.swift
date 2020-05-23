@@ -163,7 +163,7 @@ class SignUpController: UIViewController {
             
             let values = ["email": email, "fullName": fullName, "accountType": accountTypeIndex] as [String: Any]
             
-            if accountTypeIndex == 1 {
+            if accountTypeIndex == 1 {                                              // Driver Account
                 let geoFire = GeoFire(firebaseRef: driverLocationsRef)
                 guard let location = self.location else {return}
                 

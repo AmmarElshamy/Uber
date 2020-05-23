@@ -7,12 +7,11 @@
 //
 
 import Firebase
-import CoreLocation
-import GeoFire
 
 let dbRef = Database.database().reference()
 let usersRef = dbRef.child("users")
 let driverLocationsRef = dbRef.child("driver-locations")
+let tripsRef = dbRef.child("trips")
 
 struct Service {
     
@@ -27,21 +26,5 @@ struct Service {
             print("DEBUG: Fialed to fetch user data with error ", error)
         }
     }
-    
-    func fetchDrivers(location: CLLocation, completion: @escaping(User) -> Void) {
-        let geoFire = GeoFire(firebaseRef: driverLocationsRef)
-        
-        driverLocationsRef.observe(.value, with: { (snapshot) in
-            geoFire.query(at: location, withRadius: 50).observe(.keyEntered, with: { (uid, location) in
-                self.fetchUserData(uid: uid) { (user) in
-                    var driver = user
-                    driver.location = location
-                    completion(driver)
-                }
-            })
-        }) { (error) in
-            print("Failed to fetch driver location")
-        }
-        
-    }
+
 }

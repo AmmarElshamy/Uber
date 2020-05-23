@@ -15,7 +15,12 @@
 		A00E542A2472D56C001F6714 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00E54292472D56C001F6714 /* LoginController.swift */; };
 		A0228976247368AF00FE9417 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A0228975247368AF00FE9417 /* GoogleService-Info.plist */; };
 		A022897824737CDA00FE9417 /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A022897724737CDA00FE9417 /* HomeController.swift */; };
+		A0436FED2478D06C007A91A8 /* PickupController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0436FEC2478D06C007A91A8 /* PickupController.swift */; };
 		A044984724760AA200AA95F1 /* DriverAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A044984624760AA200AA95F1 /* DriverAnnotation.swift */; };
+		A04BD22A23BC1BA70088023F /* RideActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04BD22923BC1BA70088023F /* RideActionView.swift */; };
+		A04BD22C2477B8F40088023F /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04BD22B2477B8F40088023F /* Trip.swift */; };
+		A04BD22E2477DAC40088023F /* RiderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04BD22D2477DAC40088023F /* RiderService.swift */; };
+		A04BD2302477DAD60088023F /* DriverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04BD22F2477DAD60088023F /* DriverService.swift */; };
 		A05AA18B2474C60E0061A9F5 /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05AA18A2474C60E0061A9F5 /* Service.swift */; };
 		A05AA18D2474CC890061A9F5 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05AA18C2474CC890061A9F5 /* User.swift */; };
 		A05AA18F2474D3AB0061A9F5 /* LocationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05AA18E2474D3AB0061A9F5 /* LocationHandler.swift */; };
@@ -39,7 +44,12 @@
 		A00E54292472D56C001F6714 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
 		A0228975247368AF00FE9417 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A022897724737CDA00FE9417 /* HomeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
+		A0436FEC2478D06C007A91A8 /* PickupController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupController.swift; sourceTree = "<group>"; };
 		A044984624760AA200AA95F1 /* DriverAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverAnnotation.swift; sourceTree = "<group>"; };
+		A04BD22923BC1BA70088023F /* RideActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideActionView.swift; sourceTree = "<group>"; };
+		A04BD22B2477B8F40088023F /* Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
+		A04BD22D2477DAC40088023F /* RiderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiderService.swift; sourceTree = "<group>"; };
+		A04BD22F2477DAD60088023F /* DriverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverService.swift; sourceTree = "<group>"; };
 		A05AA18A2474C60E0061A9F5 /* Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Service.swift; sourceTree = "<group>"; };
 		A05AA18C2474CC890061A9F5 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		A05AA18E2474D3AB0061A9F5 /* LocationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationHandler.swift; sourceTree = "<group>"; };
@@ -130,6 +140,8 @@
 			isa = PBXGroup;
 			children = (
 				A05AA18A2474C60E0061A9F5 /* Service.swift */,
+				A04BD22D2477DAC40088023F /* RiderService.swift */,
+				A04BD22F2477DAD60088023F /* DriverService.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -140,6 +152,7 @@
 				A00E54292472D56C001F6714 /* LoginController.swift */,
 				A0DDD3622473441400BD422E /* SignUpController.swift */,
 				A022897724737CDA00FE9417 /* HomeController.swift */,
+				A0436FEC2478D06C007A91A8 /* PickupController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -152,6 +165,7 @@
 				A077E71A2474773E00138BCC /* LocationInputActivationView.swift */,
 				A077E71C24748BDB00138BCC /* LocationInputView.swift */,
 				A077E71E247496EC00138BCC /* LocationCell.swift */,
+				A04BD22923BC1BA70088023F /* RideActionView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -160,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				A05AA18C2474CC890061A9F5 /* User.swift */,
+				A04BD22B2477B8F40088023F /* Trip.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -283,13 +298,18 @@
 				A0DDD36524734F5E00BD422E /* AuthButton.swift in Sources */,
 				A022897824737CDA00FE9417 /* HomeController.swift in Sources */,
 				A077E71D24748BDB00138BCC /* LocationInputView.swift in Sources */,
+				A04BD22C2477B8F40088023F /* Trip.swift in Sources */,
+				A04BD22E2477DAC40088023F /* RiderService.swift in Sources */,
 				A044984724760AA200AA95F1 /* DriverAnnotation.swift in Sources */,
 				A00E542A2472D56C001F6714 /* LoginController.swift in Sources */,
 				A00E54102472D1B6001F6714 /* AppDelegate.swift in Sources */,
 				A077E71F247496EC00138BCC /* LocationCell.swift in Sources */,
 				A05AA18F2474D3AB0061A9F5 /* LocationHandler.swift in Sources */,
 				A00E54122472D1B6001F6714 /* SceneDelegate.swift in Sources */,
+				A04BD22A23BC1BA70088023F /* RideActionView.swift in Sources */,
+				A04BD2302477DAD60088023F /* DriverService.swift in Sources */,
 				A05AA18D2474CC890061A9F5 /* User.swift in Sources */,
+				A0436FED2478D06C007A91A8 /* PickupController.swift in Sources */,
 				A05AA18B2474C60E0061A9F5 /* Service.swift in Sources */,
 				A077E71B2474773E00138BCC /* LocationInputActivationView.swift in Sources */,
 				A08C965F2472D83600D92796 /* Extensions.swift in Sources */,
