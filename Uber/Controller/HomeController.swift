@@ -30,11 +30,7 @@ class HomeController: UIViewController {
             locationInputView.userFullName = user?.fullName
         }
     }
-    private var trip: Trip? {
-        didSet {
-            configurePickupController()
-        }
-    }
+    private var trip: Trip?
     
     private let cellIdentifier = "LocationCell"
     private let annotationIdentifier = "DriverAnnotation"
@@ -114,6 +110,14 @@ class HomeController: UIViewController {
     func observeTrips() {
         Service.shared.observeTrips() { trip in
             self.trip = trip
+            self.configurePickupController()
+        }
+    }
+    
+    func observeCurrentTrip(completion: @escaping() -> Void) {
+        Service.shared.observeCurrentTrip() { trip in
+            self.trip = trip
+            completion()
         }
     }
     
@@ -455,8 +459,15 @@ extension HomeController: RideActionViewDelegate {
     func uploadTrip(_ destination: MKPlacemark) {
         guard let currentCoordinates = locationManager?.location?.coordinate else {return}
         let destinationCoordinates = destination.coordinate
+        
         Service.shared.uploadTrip(from: currentCoordinates, to: destinationCoordinates) { (ref) in
             self.dismissRideActionView()
+            self.shouldPresentLoadingView(true, message: "Finding you a ride...")
+            self.observeCurrentTrip() {
+                if self.trip?.state == .accepted {
+                    self.shouldPresentLoadingView(false, message: nil)
+                }
+            }
         }
     }
 }

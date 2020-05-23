@@ -43,4 +43,15 @@ extension Service {
             completion(ref)
         }
     }
+    
+    func observeCurrentTrip(completion: @escaping(Trip) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {return}
+        
+        tripsRef.child(uid).observe(.value) { (snapshot) in
+            guard let dicitonary = snapshot.value as? [String: Any] else {return}
+            
+            let trip = Trip(passengerUid: uid, dictionary: dicitonary)
+            completion(trip)
+        }
+    }
 }

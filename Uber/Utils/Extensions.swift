@@ -149,3 +149,51 @@ extension MKMapView {
         setVisibleMapRect(zoomRect, edgePadding: insets, animated: true)
     }
 }
+
+extension UIViewController {
+    func shouldPresentLoadingView(_ present: Bool, message: String? = nil) {
+        present ? presentLoadingView(message: message) : dismissLoadingView()
+    }
+    
+    fileprivate func presentLoadingView(message: String? = nil) {
+        let loadingView = UIView()
+        loadingView.frame = view.frame
+        loadingView.backgroundColor = .black
+        loadingView.alpha = 0
+        loadingView.tag = 1
+        
+        let indicator = UIActivityIndicatorView()
+        indicator.style = .large
+        indicator.color = .white
+        indicator.center = view.center
+        
+        let label = UILabel()
+        label.text = message
+        label.font = UIFont.systemFont(ofSize: 20)
+        label.textColor = .white
+        label.alpha = 0.7
+        
+        view.addSubview(loadingView)
+        loadingView.addSubview(indicator)
+        loadingView.addSubview(label)
+        label.anchor(top: indicator.bottomAnchor, paddingTop: 32, centerX: loadingView
+            .centerXAnchor)
+        
+        indicator.startAnimating()
+        UIView.animate(withDuration: 0.3) {
+            loadingView.alpha = 0.7
+        }
+    }
+    
+    fileprivate func dismissLoadingView() {
+        view.subviews.forEach { (subView) in
+            if subView.tag == 1 {
+                UIView.animate(withDuration: 0.3, animations: {
+                    subView.alpha = 0
+                }) { _ in
+                    subView.removeFromSuperview()
+                }
+            }
+        }
+    }
+}
