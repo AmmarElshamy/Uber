@@ -32,4 +32,10 @@ extension Service {
             completion()
         }
     }
+    
+    func observeTripCancelled(trip: Trip, completion: @escaping() -> Void) {
+        tripsRef.child(trip.passengerUid).observeSingleEvent(of: .childRemoved) { (_) in
+            completion()
+        }
+    }
 }

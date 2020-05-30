@@ -27,7 +27,7 @@ extension Service {
         }
     }
     
-    func uploadTrip(from pickupCoordinates: CLLocationCoordinate2D, to destinationCoordintes: CLLocationCoordinate2D, completion: @escaping(DatabaseReference) -> Void) {
+    func uploadTrip(from pickupCoordinates: CLLocationCoordinate2D, to destinationCoordintes: CLLocationCoordinate2D, completion: @escaping() -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {return}
         
         let pickupArray = [pickupCoordinates.latitude, pickupCoordinates.longitude]
@@ -35,12 +35,12 @@ extension Service {
         
         let values = ["pickupCoordinates": pickupArray, "destinationCoordinates": destinationArray, "state": TripState.requested.rawValue] as [String: Any]
         
-        tripsRef.child(uid).updateChildValues(values) { (error, ref) in
+        tripsRef.child(uid).updateChildValues(values) { (error, _) in
             if let error = error {
                 print("DEBUG: Failed to uplaod trip with error ", error)
                 return
             }
-            completion(ref)
+            completion()
         }
     }
     
@@ -52,6 +52,17 @@ extension Service {
             
             let trip = Trip(passengerUid: uid, dictionary: dicitonary)
             completion(trip)
+        }
+    }
+    
+    func cancelTrip(completion: @escaping() -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {return}
+        tripsRef.child(uid).removeValue{ (error, _) in
+            if let error = error {
+                print("DEBUG: Faild to cancel current trip ", error)
+                return
+            }
+            completion()
         }
     }
 }

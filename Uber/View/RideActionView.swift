@@ -11,6 +11,7 @@ import MapKit
 
 protocol RideActionViewDelegate {
     func uploadTrip(_: MKPlacemark)
+    func cancelTrip()
 }
 
 enum RideActionViewState {
@@ -228,7 +229,7 @@ class RideActionView: UIView {
             guard let destination = destination else {return}
             delegate?.uploadTrip(destination)
         case .cancel:
-            print("DEBUG: handle cancel Trip")
+            delegate?.cancelTrip()
         case .getDirections:
             print("DEBUG: handle cancel Trip")
         case .pickup:
