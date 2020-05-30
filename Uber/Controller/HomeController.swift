@@ -10,7 +10,7 @@ import UIKit
 import Firebase
 import MapKit
 
-enum ActionButtonState {
+private enum HomeActionButtonState {
     case showSideMenu
     case dismissAction
     
@@ -36,7 +36,7 @@ class HomeController: UIViewController {
     private let annotationIdentifier = "DriverAnnotation"
     private let locationInputViewHeight: CGFloat = 200
     private let locationManager = LocationHandler.shared.locationManager
-    private var actionButtonState = ActionButtonState()
+    private var actionButtonState = HomeActionButtonState()
     
     // UI Views
     private let mapView = MKMapView()
@@ -82,7 +82,7 @@ class HomeController: UIViewController {
     func handleLoggedIn() {
         self.fetchUserData() {
             self.configureUI()
-            if self.user?.accountType == .rider {
+            if self.user?.accountType == .passenger {
                 self.fetchDrivers()
             } else {
                 self.observeTrips()
@@ -114,10 +114,18 @@ class HomeController: UIViewController {
         }
     }
     
-    func observeCurrentTrip(completion: @escaping() -> Void) {
+    func observeCurrentTrip() {
         Service.shared.observeCurrentTrip() { trip in
             self.trip = trip
-            completion()
+            
+            if self.trip?.state == .accepted {
+                self.shouldPresentLoadingView(false, message: nil)
+                
+                guard let driverUid = trip.driverUid else {return}
+                Service.shared.fetchUserData(uid: driverUid) { driver in
+                    self.configureRideActionView(user: driver, state: .tripAccepted)
+                }
+            }
         }
     }
     
@@ -143,7 +151,7 @@ class HomeController: UIViewController {
         view.addSubview(actionButton)
         actionButton.anchor(top: view.safeAreaLayoutGuide.topAnchor, paddingTop: 16, left: view.leftAnchor, paddingLeft: 16, width: 30, height: 30)
         
-        guard user?.accountType == .rider else {return}
+        guard user?.accountType == .passenger else {return}
         
         view.addSubview(locationInpuActivationtView)
         locationInpuActivationtView.anchor(top: actionButton.bottomAnchor, paddingTop: 32, centerX: view.centerXAnchor, width: view.frame.width - 64, height: 50)
@@ -163,7 +171,7 @@ class HomeController: UIViewController {
         mapView.userTrackingMode = .follow
     }
     
-    func configureActionButton(state: ActionButtonState) {
+    fileprivate func configureActionButton(state: HomeActionButtonState) {
         switch state {
         case .dismissAction:
             self.actionButton.setImage(UIImage(named: "backArrow")?.withRenderingMode(.alwaysOriginal), for: .normal)
@@ -210,9 +218,11 @@ class HomeController: UIViewController {
         locationInputView.removeFromSuperview()
     }
     
-    func configureRideActionView(destintion: MKPlacemark) {
+    func configureRideActionView(user: User? = nil, destination: MKPlacemark? = nil, state: RideActionViewState) {
         rideActionView.delegate = self
-        rideActionView.destination = destintion
+        rideActionView.user = user
+        rideActionView.destination = destination
+        rideActionView.confugureUI(withState: state)
         
         view.addSubview(rideActionView)
         rideActionView.frame = CGRect(x: 0, y: view.frame.height, width: view.frame.width, height: 300)
@@ -447,7 +457,7 @@ extension HomeController: UITableViewDelegate, UITableViewDataSource {
             self.mapView.selectAnnotation(annotation, animated: true)
                         
             self.generatePolyline(to: MKMapItem(placemark: placemark))
-            self.configureRideActionView(destintion: placemark)
+            self.configureRideActionView(destination: placemark, state: .requestRide)
             self.mapView.zoomToFit(annotations: [annotation, self.mapView.userLocation])
         }
     }
@@ -463,11 +473,7 @@ extension HomeController: RideActionViewDelegate {
         Service.shared.uploadTrip(from: currentCoordinates, to: destinationCoordinates) { (ref) in
             self.dismissRideActionView()
             self.shouldPresentLoadingView(true, message: "Finding you a ride...")
-            self.observeCurrentTrip() {
-                if self.trip?.state == .accepted {
-                    self.shouldPresentLoadingView(false, message: nil)
-                }
-            }
+            self.observeCurrentTrip()
         }
     }
 }
@@ -477,6 +483,19 @@ extension HomeController: RideActionViewDelegate {
 extension HomeController: PickupControllerDelegate {
     func didAcceptTrip(trip: Trip) {
         self.trip = trip
-        self.dismiss(animated: true, completion: nil)
+        
+        let placemark = MKPlacemark(coordinate: trip.pickupCoordinates)
+        mapView.addAnnotation(placemark)
+        generatePolyline(to: MKMapItem(placemark: placemark))
+        
+        mapView.selectAnnotation(placemark, animated: true)
+        mapView.zoomToFit(annotations: mapView.annotations)
+        
+        self.dismiss(animated: true) {
+            Service.shared.fetchUserData(uid: trip.passengerUid) { passenger in
+                self.configureRideActionView(user: passenger, state: .tripAccepted)
+            }
+        }
+        
     }
 }

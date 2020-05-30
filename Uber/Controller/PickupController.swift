@@ -103,9 +103,7 @@ class PickupController: UIViewController {
         mapView.addAnnotation(annotation)
         mapView.selectAnnotation(annotation, animated: true)
     }
-    
-    // MARK: - API
-    
+        
     // MARK: - Selectors
     
     @objc func handleDismissal() {

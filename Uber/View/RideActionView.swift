@@ -13,22 +13,59 @@ protocol RideActionViewDelegate {
     func uploadTrip(_: MKPlacemark)
 }
 
+enum RideActionViewState {
+    case requestRide
+    case tripAccepted
+    case pickupPassenger
+    case tripInProgress
+    case endTrip
+    
+    init() {
+        self = .requestRide
+    }
+}
+
+enum RideActionButtonState {
+    case requestRide
+    case cancel
+    case getDirections
+    case pickup
+    case dropOff
+    
+    var description: String {
+        switch self {
+        case .requestRide:
+            return "CONFIRM UBERX"
+        case .cancel:
+            return "CANCEL RIDE"
+        case .getDirections:
+            return "GET DIRECTIONS"
+        case .pickup:
+            return "PICKUP PASSENGER"
+        case .dropOff:
+            return "DROP OFF PASSENGER"
+        }
+    }
+    
+    init() {
+        self = .requestRide
+    }
+}
+
 class RideActionView: UIView {
     
     // MARK: - Properties
     
+    var currentState = RideActionViewState()
+    var actionButtonState = RideActionButtonState()
     var delegate: RideActionViewDelegate?
-    var destination: MKPlacemark? {
-        didSet {
-            titleLabel.text = self.destination?.name
-            addressLabel.text = self.destination?.address
-        }
-    }
+    var user: User?
+    var destination: MKPlacemark?
     
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .black
-        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.font = UIFont.boldSystemFont(ofSize: 18)
         label.textAlignment = .center
         return label
     }()
@@ -49,27 +86,24 @@ class RideActionView: UIView {
         return sv
     }()
     
-    private let infoView: UIView = {
+    private let symbolView: UIView = {
         let view = UIView()
         view.backgroundColor = .black
         view.layer.cornerRadius = 30
-        
-        let label = UILabel()
-        label.textColor = .white
-        label.font = UIFont.systemFont(ofSize: 30)
-        label.text = "X"
-        
-        view.addSubview(label)
-        label.anchor(centerX: view.centerXAnchor, centerY: view.centerYAnchor)
-
         return view
     }()
     
-    private let uberXLabel: UILabel = {
+    private let symbolViewLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = UIFont.systemFont(ofSize: 30)
+        return label
+    }()
+    
+    private let infoLabel: UILabel = {
         let label = UILabel()
         label.textColor = .black
         label.font = UIFont.systemFont(ofSize: 18)
-        label.text = "UberX"
         label.textAlignment = .center
         return label
     }()
@@ -83,8 +117,8 @@ class RideActionView: UIView {
     private lazy var actionButton: UIButton = {
         let button  = UIButton(type: .system)
         button.backgroundColor = .black
-        button.setTitle("Confirm UBERX", for: .normal)
         button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 20)
         button.addTarget(self, action: #selector(actionButtonPressed), for: .touchUpInside)
         return button
     }()
@@ -110,23 +144,97 @@ class RideActionView: UIView {
         addSubview(titleStackView)
         titleStackView.anchor(top: topAnchor, paddingTop: 18, centerX: centerXAnchor)
         
-        addSubview(infoView)
-        infoView.anchor(top: titleStackView.bottomAnchor, paddingTop: 20, centerX: centerXAnchor, width: 60, height: 60)
+        addSubview(symbolView)
+        symbolView.anchor(top: titleStackView.bottomAnchor, paddingTop: 20, centerX: centerXAnchor, width: 60, height: 60)
         
-        addSubview(uberXLabel)
-        uberXLabel.anchor(top: infoView.bottomAnchor, paddingTop: 8, centerX: centerXAnchor)
+        symbolView.addSubview(symbolViewLabel)
+        symbolViewLabel.anchor(centerX: symbolView.centerXAnchor, centerY: symbolView.centerYAnchor)
+        
+        addSubview(infoLabel)
+        infoLabel.anchor(top: symbolView.bottomAnchor, paddingTop: 8, centerX: centerXAnchor)
         
         addSubview(separatorView)
-        separatorView.anchor(top: uberXLabel.bottomAnchor, paddingTop: 4, left: leftAnchor, right: rightAnchor, height: 0.75)
+        separatorView.anchor(top: infoLabel.bottomAnchor, paddingTop: 4, left: leftAnchor, right: rightAnchor, height: 0.75)
         
         addSubview(actionButton)
         actionButton.anchor(top: separatorView.bottomAnchor, paddingTop: 20, left: leftAnchor, paddingLeft: 12, right: rightAnchor, paddingRight: 12, height: 50)
     }
     
+    func confugureUI(withState state: RideActionViewState) {
+        switch state {
+            
+        case .requestRide:
+            guard let destination = destination else {return}
+            titleLabel.text = destination.name
+            addressLabel.text = destination.address
+            symbolViewLabel.text = "X"
+            infoLabel.text = "UberX"
+            actionButtonState = .requestRide
+            actionButton.setTitle(actionButtonState.description, for: .normal)
+            
+        case .tripAccepted:
+            guard let user = user else {return}
+            
+            if user.accountType == .passenger {                 // Driver Side
+                titleLabel.text = "En Route To Passenger"
+                actionButtonState = .getDirections
+                actionButton.setTitle(actionButtonState.description, for: .normal)
+            } else {                                           // Passenger Side
+                titleLabel.text = "Driver En Route"
+                actionButtonState = .cancel
+                actionButton.setTitle(actionButtonState.description, for: .normal)
+            }
+            
+            addressLabel.text = ""
+            symbolViewLabel.text = String(user.fullName.first ?? " ")
+            infoLabel.text = user.fullName
+            
+        case .pickupPassenger:
+            titleLabel.text = "Arrived At Passenger Location"
+            actionButtonState = .pickup
+            actionButton.setTitle(actionButtonState.description, for: .normal)
+            
+        case .tripInProgress:
+            guard let user = user else {return}
+            
+            if user.accountType == .passenger {
+                actionButtonState = .getDirections
+                actionButton.setTitle(actionButtonState.description, for: .normal)
+            } else {
+                actionButton.setTitle("TRIP IN PROGRESS", for: .normal)
+                actionButton.isEnabled = false
+            }
+            
+            titleLabel.text = "En Route To Destination"
+            
+        case .endTrip:
+            guard let user = user else {return}
+            
+            if user.accountType == .passenger {                // Driver Side
+                actionButtonState = .dropOff
+                actionButton.setTitle(actionButtonState.description, for: .normal)
+            } else {
+                actionButton.setTitle("ARRIVED AT DESTINATION", for: .normal)
+                actionButton.isEnabled = false
+            }
+        }
+    }
+    
     // MARK: - Selectors
     
     @objc func actionButtonPressed() {
-        guard let destination = destination else {return}
-        delegate?.uploadTrip(destination)
+        switch actionButtonState {
+        case .requestRide:
+            guard let destination = destination else {return}
+            delegate?.uploadTrip(destination)
+        case .cancel:
+            print("DEBUG: handle cancel Trip")
+        case .getDirections:
+            print("DEBUG: handle cancel Trip")
+        case .pickup:
+            print("DEBUG: handle cancel Trip")
+        case .dropOff:
+            print("DEBUG: handle cancel Trip")
+        }
     }
 }

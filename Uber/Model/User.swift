@@ -10,7 +10,7 @@ import Foundation
 import CoreLocation
 
 enum AccountType: Int {
-    case rider
+    case passenger
     case driver
 }
 
