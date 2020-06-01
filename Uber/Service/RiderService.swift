@@ -10,13 +10,16 @@ import Firebase
 import GeoFire
 import CoreLocation
 
-extension Service {
+struct RiderService {
+    
+    static let shared = RiderService()
+    
     func fetchDrivers(location: CLLocation, completion: @escaping(User) -> Void) {
         let geoFire = GeoFire(firebaseRef: driverLocationsRef)
         
         driverLocationsRef.observe(.value, with: { (snapshot) in
             geoFire.query(at: location, withRadius: 50).observe(.keyEntered, with: { (uid, location) in
-                self.fetchUserData(uid: uid) { (user) in
+                Service.shared.fetchUserData(uid: uid) { (user) in
                     var driver = user
                     driver.location = location
                     completion(driver)
@@ -55,7 +58,7 @@ extension Service {
         }
     }
     
-    func cancelTrip(completion: @escaping() -> Void) {
+    func deleteTrip(completion: @escaping() -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {return}
         tripsRef.child(uid).removeValue{ (error, _) in
             if let error = error {

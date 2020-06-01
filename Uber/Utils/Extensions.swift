@@ -136,6 +136,14 @@ extension MKPlacemark {
 }
 
 extension MKMapView {
+    func addAndSelectAnnotation(forPlacemark placemark: MKPlacemark) {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = placemark.coordinate
+        annotation.title = placemark.title
+        addAnnotation(annotation)
+        selectAnnotation(annotation, animated: true)
+    }
+    
     func zoomToFit(annotations: [MKAnnotation]) {
         var zoomRect = MKMapRect.null
         

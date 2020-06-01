@@ -12,11 +12,14 @@ import MapKit
 protocol RideActionViewDelegate {
     func uploadTrip(_: MKPlacemark)
     func cancelTrip()
+    func pickupPassenger()
+    func dropOffPassenger()
 }
 
 enum RideActionViewState {
     case requestRide
     case tripAccepted
+    case driverArrived
     case pickupPassenger
     case tripInProgress
     case endTrip
@@ -62,6 +65,11 @@ class RideActionView: UIView {
     var delegate: RideActionViewDelegate?
     var user: User?
     var destination: MKPlacemark?
+    var state = RideActionViewState() {
+        didSet{
+            configureUI(withState: state)
+        }
+    }
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -161,7 +169,7 @@ class RideActionView: UIView {
         actionButton.anchor(top: separatorView.bottomAnchor, paddingTop: 20, left: leftAnchor, paddingLeft: 12, right: rightAnchor, paddingRight: 12, height: 50)
     }
     
-    func confugureUI(withState state: RideActionViewState) {
+    func configureUI(withState state: RideActionViewState) {
         switch state {
             
         case .requestRide:
@@ -189,6 +197,10 @@ class RideActionView: UIView {
             addressLabel.text = ""
             symbolViewLabel.text = String(user.fullName.first ?? " ")
             infoLabel.text = user.fullName
+        
+        case .driverArrived:
+            titleLabel.text = "Driver Has Arrived"
+            addressLabel.text = "Please meet the driver at pickup location"
             
         case .pickupPassenger:
             titleLabel.text = "Arrived At Passenger Location"
@@ -198,15 +210,16 @@ class RideActionView: UIView {
         case .tripInProgress:
             guard let user = user else {return}
             
-            if user.accountType == .passenger {
+            if user.accountType == .passenger {                 // Driver Side
                 actionButtonState = .getDirections
                 actionButton.setTitle(actionButtonState.description, for: .normal)
-            } else {
+            } else {                                           // Passenger Side
                 actionButton.setTitle("TRIP IN PROGRESS", for: .normal)
                 actionButton.isEnabled = false
             }
             
             titleLabel.text = "En Route To Destination"
+            addressLabel.text = ""
             
         case .endTrip:
             guard let user = user else {return}
@@ -214,10 +227,12 @@ class RideActionView: UIView {
             if user.accountType == .passenger {                // Driver Side
                 actionButtonState = .dropOff
                 actionButton.setTitle(actionButtonState.description, for: .normal)
-            } else {
-                actionButton.setTitle("ARRIVED AT DESTINATION", for: .normal)
+            } else {                                           // Passenger Side
+                actionButton.setTitle("TRIP COMPLETED", for: .normal)
                 actionButton.isEnabled = false
             }
+            
+            titleLabel.text = "Arrived At Destination"
         }
     }
     
@@ -231,11 +246,11 @@ class RideActionView: UIView {
         case .cancel:
             delegate?.cancelTrip()
         case .getDirections:
-            print("DEBUG: handle cancel Trip")
+            print("DEBUG: handle getDirections")
         case .pickup:
-            print("DEBUG: handle cancel Trip")
+            delegate?.pickupPassenger()
         case .dropOff:
-            print("DEBUG: handle cancel Trip")
+            delegate?.dropOffPassenger()
         }
     }
 }

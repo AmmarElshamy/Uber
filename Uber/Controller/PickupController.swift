@@ -98,10 +98,7 @@ class PickupController: UIViewController {
         let region = MKCoordinateRegion(center: trip.pickupCoordinates, latitudinalMeters: 1000, longitudinalMeters: 1000)
         mapView.setRegion(region, animated: false)
         
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = trip.pickupCoordinates
-        mapView.addAnnotation(annotation)
-        mapView.selectAnnotation(annotation, animated: true)
+        mapView.addAndSelectAnnotation(forPlacemark: MKPlacemark(coordinate: trip.pickupCoordinates))
     }
         
     // MARK: - Selectors
@@ -111,7 +108,7 @@ class PickupController: UIViewController {
     }
     
     @objc func handleAcceptTrip() {
-        Service.shared.acceptTrip(trip: trip) {
+        DriversService.shared.updateTripState(trip: self.trip, state: .accepted) {
             guard let uid = Auth.auth().currentUser?.uid else {return}
             self.trip.driverUid = uid
             self.trip.state = TripState.accepted
