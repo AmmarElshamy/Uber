@@ -115,8 +115,8 @@ class LoginController: UIViewController{
             }
             
             print("Successfully logged user in..")
-            guard let homeController = UIApplication.shared.keyWindow?.rootViewController as? HomeController else {return}
-            homeController.handleLoggedIn()
+            guard let containerController = UIApplication.shared.keyWindow?.rootViewController as? ContainerController else {return}
+            containerController.homeController.handleLoggedIn()
             self.dismiss(animated: true)
 
         }

@@ -68,4 +68,15 @@ struct RiderService {
             completion()
         }
     }
+    
+    func saveLocation(type: LocationType, locationString: String, completion: @escaping() -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {return}
+        usersRef.child(uid).child(type.desctiption.lowercased()).setValue(locationString) { (error, _) in
+            if let error = error {
+                print("Faild to save ", type.desctiption, " location with error ", error)
+                return
+            }
+            completion()
+        }
+    }
 }

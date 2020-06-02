@@ -10,12 +10,16 @@ import UIKit
 import Firebase
 import MapKit
 
+protocol HomeControllerDelegate {
+    func handleMenuToggle(withUser user: User)
+}
+
 private enum HomeActionButtonState {
-    case showSideMenu
+    case sideMenu
     case dismissAction
     
     init() {
-        self = .showSideMenu
+        self = .sideMenu
     }
 }
 
@@ -24,20 +28,25 @@ private enum RegionType: String {
     case destination
 }
 
+private let locationCellIdentifier = "LocationCell"
+private let defaultCellIdentifier = "Cell"
+
 class HomeController: UIViewController {
     
     // MARK: - Properties
     
     private var searchResults = [MKPlacemark]()
+    private var savedLocations = [String: MKPlacemark]()
     private var route: MKRoute?
-    private var user: User? {
+    var user: User? {
         didSet {
             locationInputView.userFullName = user?.fullName
+            configureSavedLocations()
         }
     }
     private var trip: Trip?
+    var delegate: HomeControllerDelegate?
     
-    private let cellIdentifier = "LocationCell"
     private let annotationIdentifier = "DriverAnnotation"
     private let locationInputViewHeight: CGFloat = 200
     private let locationManager = LocationHandler.shared.locationManager
@@ -57,7 +66,7 @@ class HomeController: UIViewController {
     private let rideActionView = RideActionView()
     
     // MARK: - Lifecycle
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -65,7 +74,6 @@ class HomeController: UIViewController {
         
         locationInputActivationView.delegate = self
         
-//         signOut()
         enableLocationSevices()
         checkIfUserIsLoggedIn()
     }
@@ -94,26 +102,12 @@ class HomeController: UIViewController {
             }
         }
     }
-        
+    
     func fetchUserData(completion: @escaping() -> Void) {
         guard let currentUid = Auth.auth().currentUser?.uid else {return}
         Service.shared.fetchUserData(uid: currentUid) { (user) -> (Void) in
             self.user = user
             completion()
-        }
-    }
-    
-    func signOut() {
-        do {
-            try Auth.auth().signOut()
-            DispatchQueue.main.async {
-                let navController = UINavigationController(rootViewController: LoginController())
-                navController.modalPresentationStyle = .fullScreen
-                self.present(navController, animated: true)
-            }
-            print("DEBUG: Signed out successfully")
-        } catch let error {
-            print("DEBUG: Failed to sign out with error ", error)
         }
     }
     
@@ -171,7 +165,7 @@ class HomeController: UIViewController {
                     }
                 }
                 self.mapView.zoomToFit(annotations: annotations)
-            
+                
             case .arrivedAtDestination:
                 self.rideActionView.state = .endTrip
                 
@@ -237,9 +231,9 @@ class HomeController: UIViewController {
         case .dismissAction:
             self.actionButton.setImage(UIImage(named: "backArrow")?.withRenderingMode(.alwaysOriginal), for: .normal)
             self.actionButtonState = .dismissAction
-        case .showSideMenu:
+        case .sideMenu:
             self.actionButton.setImage(UIImage(named: "menu")?.withRenderingMode(.alwaysOriginal), for: .normal)
-            self.actionButtonState = .showSideMenu
+            self.actionButtonState = .sideMenu
         }
     }
     
@@ -261,7 +255,8 @@ class HomeController: UIViewController {
         locationTableView.delegate = self
         locationTableView.dataSource = self
         
-        locationTableView.register(LocationCell.self, forCellReuseIdentifier: cellIdentifier)
+        locationTableView.register(LocationCell.self, forCellReuseIdentifier: locationCellIdentifier)
+        locationTableView.register(UITableViewCell.self, forCellReuseIdentifier: defaultCellIdentifier)
         
         locationTableView.rowHeight = 60
         locationTableView.tableFooterView = UIView()
@@ -306,6 +301,33 @@ class HomeController: UIViewController {
         controller.modalPresentationStyle = .fullScreen
         controller.delegate = self
         self.present(controller, animated: true)
+    }
+    
+    func configureSavedLocations() {
+        guard let user = user else {return}
+        
+        if let homeLoction = user.homeLocation {
+            geocodeAddressString(homeLoction) { placemark in
+                self.savedLocations["Home"] = placemark
+                self.locationTableView.reloadData()
+            }
+        }
+        
+        if let workLocation = user.workLocation {
+            geocodeAddressString(workLocation) { placemark in
+                self.savedLocations["Work"] = placemark
+                self.locationTableView.reloadData()
+            }
+        }
+    }
+    
+    func geocodeAddressString(_ addressString: String, completion: @escaping(MKPlacemark) -> Void) {
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(addressString) { (placemarks, error) in
+            guard let clPlacemark = placemarks?.first else {return}
+            let placemark = MKPlacemark(placemark: clPlacemark)
+            completion(placemark)
+        }
     }
     
     // MARK: - Map Helper Functions
@@ -395,8 +417,8 @@ class HomeController: UIViewController {
     
     @objc func actionButtonPressed() {
         switch actionButtonState {
-        case .showSideMenu:
-            print("DEBUG: Menu")
+        case .sideMenu:
+            delegate?.handleMenuToggle(withUser: self.user!)
             
         case .dismissAction:
             removeAnnotationsAndOverlays()
@@ -405,7 +427,7 @@ class HomeController: UIViewController {
             
             UIView.animate(withDuration: 0.3, animations: {
                 self.locationInputActivationView.alpha = 0.9
-                self.configureActionButton(state: .showSideMenu)
+                self.configureActionButton(state: .sideMenu)
             })
         }
     }
@@ -426,7 +448,7 @@ extension HomeController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         locationManager?.stopMonitoring(for: region)
         guard let trip = self.trip else {return}
-
+        
         if region.identifier == RegionType.pickup.rawValue {
             print("DEBUG: Entered passenger region")
             rideActionView.state = .pickupPassenger
@@ -542,20 +564,29 @@ extension HomeController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return " "
+        return section == 0 ? (savedLocations.count > 0 ? "Saved Locations" : "") : (searchResults.count > 0 ? "Results" : "")
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return section == 0 ? 2 : searchResults.count
+        return section == 0 ? savedLocations.count : searchResults.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = locationTableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! LocationCell
         
-        if indexPath.section == 1 {
-            cell.placemark = searchResults[indexPath.row]
+        if indexPath.section == 0 {
+            let cell = locationTableView.dequeueReusableCell(withIdentifier: defaultCellIdentifier, for: indexPath)
+            
+            if indexPath.row == 0, savedLocations["Home"] != nil {
+                cell.textLabel?.text = "Home"
+            } else {
+                cell.textLabel?.text = "Work"
+            }
+            return cell
         }
         
+        let cell = locationTableView.dequeueReusableCell(withIdentifier: locationCellIdentifier, for: indexPath) as! LocationCell
+        
+        cell.placemark = searchResults[indexPath.row]
         return cell
     }
     
@@ -564,12 +595,20 @@ extension HomeController: UITableViewDelegate, UITableViewDataSource {
         configureActionButton(state: .dismissAction)
         
         dismissLocationInputView { _ in
-            let placemark = self.searchResults[indexPath.row]
+            var placemark: MKPlacemark
+            if indexPath.section == 0 {
+                guard let locationType = self.locationTableView.cellForRow(at: indexPath)?.textLabel?.text else {return}
+                placemark = self.savedLocations[locationType]!
+            } else {
+                placemark = self.searchResults[indexPath.row]
+            }
             self.mapView.addAndSelectAnnotation(forPlacemark: placemark)
             self.generatePolyline(to: MKMapItem(placemark: placemark))
             self.configureRideActionView(destination: placemark, state: .requestRide)
             self.mapView.zoomToFit(annotations: [placemark, self.mapView.userLocation])
         }
+        
+        locationTableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
