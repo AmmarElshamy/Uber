@@ -36,6 +36,7 @@
 		A08E352C2485F63700416CE8 /* SettingsHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A08E352B2485F63700416CE8 /* SettingsHeader.swift */; };
 		A0DDD3632473441400BD422E /* SignUpController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DDD3622473441400BD422E /* SignUpController.swift */; };
 		A0DDD36524734F5E00BD422E /* AuthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DDD36424734F5E00BD422E /* AuthButton.swift */; };
+		A0FF46B72486A0CF0048DE7F /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FF46B62486A0CF0048DE7F /* CircularProgressView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +72,7 @@
 		A08E352B2485F63700416CE8 /* SettingsHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHeader.swift; sourceTree = "<group>"; };
 		A0DDD3622473441400BD422E /* SignUpController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpController.swift; sourceTree = "<group>"; };
 		A0DDD36424734F5E00BD422E /* AuthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthButton.swift; sourceTree = "<group>"; };
+		A0FF46B62486A0CF0048DE7F /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
 		AF953663D36BF4B43476B038 /* Pods-Uber.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Uber.debug.xcconfig"; path = "Target Support Files/Pods-Uber/Pods-Uber.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -174,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				A0DDD36424734F5E00BD422E /* AuthButton.swift */,
+				A0FF46B62486A0CF0048DE7F /* CircularProgressView.swift */,
 				A044984624760AA200AA95F1 /* DriverAnnotation.swift */,
 				A077E71A2474773E00138BCC /* LocationInputActivationView.swift */,
 				A077E71C24748BDB00138BCC /* LocationInputView.swift */,
@@ -188,8 +191,8 @@
 		A00E54282472D1F2001F6714 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				A05AA18C2474CC890061A9F5 /* User.swift */,
 				A04BD22B2477B8F40088023F /* Trip.swift */,
+				A05AA18C2474CC890061A9F5 /* User.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -352,6 +355,7 @@
 				A02BDB942485E92900A5201D /* SettingsController.swift in Sources */,
 				A077E71B2474773E00138BCC /* LocationInputActivationView.swift in Sources */,
 				A08C965F2472D83600D92796 /* Extensions.swift in Sources */,
+				A0FF46B72486A0CF0048DE7F /* CircularProgressView.swift in Sources */,
 				A04C39FC2486376F0082AA45 /* AddLocationController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

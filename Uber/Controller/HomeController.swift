@@ -130,6 +130,13 @@ class HomeController: UIViewController {
             case .requested:
                 break
                 
+            case .denied:
+                RiderService.shared.deleteTrip {
+                    self.actionButton.sendActions(for: .touchUpInside) // return to the initial state
+                    self.shouldPresentLoadingView(false)
+                    self.presentAlertController(withTitle: "Oops", withMessage: "It looks like we couldn't find you a driver, please try again")
+                }
+                
             case .accepted:
                 self.shouldPresentLoadingView(false, message: nil)
                 

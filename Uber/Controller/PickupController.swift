@@ -29,6 +29,12 @@ class PickupController: UIViewController {
         return button
     }()
     
+    private lazy var circularProgressView: CircularProgressView = {
+        let frame = CGRect(x: 0, y: 0, width: 290, height: 290)
+        let cp = CircularProgressView(frame: frame)
+        return cp
+    }()
+    
     private let mapView: MKMapView = {
         let view = MKMapView()
         view.layer.cornerRadius = 270 / 2
@@ -66,6 +72,7 @@ class PickupController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.perform(#selector(animateProgress), with: nil, afterDelay: 1)
         
         configureUI()
         configureMapView()
@@ -83,12 +90,14 @@ class PickupController: UIViewController {
         view.addSubview(cancelButton)
         cancelButton.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, paddingLeft: 16)
         
-        view.addSubview(mapView)
-        mapView.anchor(top: view.safeAreaLayoutGuide.topAnchor, paddingTop: 80, centerX: view.centerXAnchor, width:
-        270, height: 270)
+        view.addSubview(circularProgressView)
+        circularProgressView.anchor(top: view.safeAreaLayoutGuide.topAnchor, paddingTop: 80, centerX: view.centerXAnchor, width: 290, height: 290)
+        
+        circularProgressView.addSubview(mapView)
+        mapView.anchor(centerX: circularProgressView.centerXAnchor, centerY: circularProgressView.centerYAnchor, width: 270, height: 270)
         
         view.addSubview(pickupLabel)
-        pickupLabel.anchor(top: mapView.bottomAnchor, paddingTop: 60, centerX: view.centerXAnchor)
+        pickupLabel.anchor(top: circularProgressView.bottomAnchor, paddingTop: 60, centerX: view.centerXAnchor)
         
         view.addSubview(acceptTripButton)
         acceptTripButton.anchor(top: pickupLabel.bottomAnchor, paddingTop: 15, left: view.leftAnchor, paddingLeft: 32, right: view.rightAnchor, paddingRight: 32, height: 50)
@@ -102,6 +111,14 @@ class PickupController: UIViewController {
     }
         
     // MARK: - Selectors
+    
+    @objc func animateProgress() {
+        circularProgressView.animateProgress(duration: 5, completion: {
+            DriversService.shared.updateTripState(trip: self.trip, state: .denied) {
+                self.dismiss(animated: true, completion: nil)
+            }
+        })
+    }
     
     @objc func handleDismissal() {
         dismiss(animated: true, completion: nil)
