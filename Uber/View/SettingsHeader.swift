@@ -14,11 +14,20 @@ class SettingHeader: UIView {
     
     var user: User?
     
-    private let profileImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.backgroundColor = .lightGray
-        imageView.layer.cornerRadius = 32
-        return imageView
+    private let profileImageView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .black
+        view.layer.cornerRadius = 32
+        return view
+    }()
+    
+    private lazy var profileImageLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 42)
+        guard let firstChar = self.user?.fullName.first else {return label}
+        label.text = String(firstChar)
+        return label
     }()
     
     private lazy var fullNameLabel: UILabel = {
@@ -65,6 +74,9 @@ class SettingHeader: UIView {
         
         addSubview(profileImageView)
         profileImageView.anchor(left: leftAnchor, paddingLeft: 12, centerY: centerYAnchor, width: 64, height: 64)
+        
+        profileImageView.addSubview(profileImageLabel)
+        profileImageLabel.anchor(centerX: profileImageView.centerXAnchor, centerY: profileImageView.centerYAnchor)
         
         addSubview(userInfoStackView)
         userInfoStackView.anchor(left: profileImageView.rightAnchor, paddingLeft: 12, centerY: profileImageView.centerYAnchor)

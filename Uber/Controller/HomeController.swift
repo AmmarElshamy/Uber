@@ -507,7 +507,7 @@ extension HomeController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         guard let annotation = annotation as? DriverAnnotation else { return nil }
         let view = MKAnnotationView(annotation: annotation, reuseIdentifier: annotationIdentifier)
-        view.image = #imageLiteral(resourceName: "annotation")
+        view.image = #imageLiteral(resourceName: "car")
         return view
     }
     
