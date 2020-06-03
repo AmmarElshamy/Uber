@@ -36,6 +36,8 @@ struct DriversService {
         if state == .accepted {
             values = ["driverUid": uid,
                       "state": state.rawValue]
+        } else if state == .denied, trip.state == .accepted {
+            return
         } else {
             values = ["state": state.rawValue]
         }

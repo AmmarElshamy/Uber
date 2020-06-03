@@ -180,6 +180,7 @@ class RideActionView: UIView {
             infoLabel.text = "UberX"
             actionButtonState = .requestRide
             actionButton.setTitle(actionButtonState.description, for: .normal)
+            actionButton.isEnabled = true
             
         case .tripAccepted:
             guard let user = user else {return}
